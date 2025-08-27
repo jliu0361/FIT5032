@@ -1,19 +1,11 @@
 <script setup>
-
+import HomePage from './components/homepage.vue'
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+  <div id="app">
+    <HomePage />
+  </div>
 </template>
 
 <style scoped>
@@ -42,5 +34,5 @@ header {
     place-items: flex-start;
     flex-wrap: wrap;
   }
-}
+}  /*from the NoMonash-lab, didn't implement logo now */
 </style>
