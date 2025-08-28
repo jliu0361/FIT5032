@@ -1,10 +1,10 @@
 <script setup>
-import HomePage from './components/homepage.vue'
+import Joinactivities from './components/Joinactivities.vue'
 </script>
 
 <template>
   <div id="app">
-    <HomePage />
+    <Joinactivities />
   </div>
 </template>
 
@@ -34,5 +34,5 @@ header {
     place-items: flex-start;
     flex-wrap: wrap;
   }
-}  /*from the NoMonash-lab, didn't implement logo now */
+} /*from the NoMonash-lab, didn't implement logo now */
 </style>

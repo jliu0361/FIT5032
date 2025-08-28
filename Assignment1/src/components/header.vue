@@ -1,7 +1,7 @@
 <template>
   <header class="header">
     <div class="header-content">
-      <h1 class="brand-name">MoveMate</h1>
+      <h1 class="brand-name">SportMate</h1>
       <nav class="navigation">
         <a href="#" class="nav-link">Join Activities</a>
         <a href="#" class="nav-link">Wellbeing&Support</a>
@@ -13,8 +13,7 @@
   </header>
 </template>
 
-<script setup>
-</script>
+<script setup></script>
 
 <style scoped>
 .header {
@@ -24,7 +23,7 @@
 }
 
 .header-content {
-  margin: 0 auto; 
+  margin: 0 auto;
   padding: 0 2rem;
   display: flex;
   justify-content: flex-start;
@@ -36,13 +35,13 @@
   font-weight: bold;
   color: #000000;
   margin: 0;
-  margin-left: 10rem; 
+  margin-left: 10rem;
 }
 
 .navigation {
   display: flex;
   gap: 2rem;
-  margin-left: auto; 
+  margin-left: auto;
 }
 
 .nav-link {
@@ -58,16 +57,16 @@
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .brand-name {
-    margin-right: 0; 
+    margin-right: 0;
   }
-  
+
   .navigation {
     flex-wrap: wrap;
     justify-content: center;
     gap: 1rem;
-    margin-left: 0; 
+    margin-left: 0;
   }
 }
 </style>
