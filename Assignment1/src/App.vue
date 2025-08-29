@@ -1,5 +1,5 @@
 <script setup>
-import Joinactivities from './components/Joinactivities.vue'
+import Joinactivities from './components/JoinActivities.vue'
 </script>
 
 <template>

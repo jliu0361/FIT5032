@@ -31,7 +31,7 @@
                 </div>
               </div>
 
-              <div class="col-12 col-md-6">
+              <div class="col-12 col-md-6 mb-3 mb-md-0">
                 <div class="form-group">
                   <label for="age" class="form-label">Age:</label>
                   <input
@@ -71,7 +71,7 @@
                 </div>
               </div>
 
-              <div class="col-12 col-md-6">
+              <div class="col-12 col-md-6 mb-3 mb-md-0">
                 <div class="form-group">
                   <label for="sport" class="form-label">Preferred Sport:</label>
                   <select
@@ -112,7 +112,6 @@
                     <option value="morning">Morning (6AM-12PM)</option>
                     <option value="afternoon">Afternoon (12PM-6PM)</option>
                     <option value="evening">Evening (6PM-8PM)</option>
-                    <option value="flexible">Flexible(Anytime Available)</option>
                   </select>
                   <div v-if="errors.time" class="error-message">{{ errors.time }}</div>
                 </div>
@@ -128,6 +127,42 @@
             </div>
           </form>
         </div>
+
+        <div v-if="showResults" class="results-section mt-6">
+          <h2 class="results-title">Activities ({{ searchResults.length }})</h2>
+          
+          <div v-if="searchResults.length === 0" class="no-results">
+            <p class="result-title">No activities found match your preferences. Try different options.</p>
+          </div>
+          
+          <div v-else class="activities-found">
+            <div class="row g-4">
+              <div
+                v-for="activity in searchResults"
+                :key="activity.sportid"
+                class="col-12 col-md-6 mb-3 mb-md-0"
+              >
+                <div class="card-activities-display">
+                  <div class="card-activities-body">
+                    <h5 class="card-activities-title">{{ activity.name }}</h5>
+                    <p class="card-activities-text">
+                      {{ activity.description}}
+                    </p>
+
+                    <ul class="list-unstyled small mb-3">
+                      <li>Location:{{ activity.location }}</li>
+                      <li>Time: {{ activity.time }}</li>
+                      <li>Participants: {{ activity.currentParticipants }}</li>
+                      <li>Contact: {{ activity.contact }}</li>
+                    </ul>
+
+                    <button class="btn btn-success btn-lg w-50 mt-auto">Join Activity</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
 
@@ -136,9 +171,10 @@
 </template>
 
 <script setup>
-import Header from './header.vue'
-import Footer from './footer.vue'
+import Header from './HeaderPage.vue'
+import Footer from './FooterPage.vue'
 import { ref } from 'vue'
+import { activitiesData } from '../data/activities.js'
 
 const formData = ref({
   gender: '',
@@ -155,6 +191,10 @@ const errors = ref({
   sport: null,
   time: null,
 })
+
+
+const searchResults = ref([])
+const showResults = ref(false)
 
 const validateAge = (blur) => {
   const age = formData.value.age
@@ -214,8 +254,25 @@ const findSports = () => {
     return
   }
 
-  console.log('Form submitted:', formData.value)
-  alert('Finding sports for you...')
+  const results = activitiesData.filter(activity => {
+    if (formData.value.sport && activity.sport !== formData.value.sport) {
+      return false
+    }
+    
+    if (formData.value.time && activity.time !== formData.value.time) {
+      return false
+    }
+    
+    if (formData.value.postcode && !activity.postcode.startsWith('3')) {
+      return false
+    }
+    
+    return true
+  })
+
+  searchResults.value = results
+  showResults.value = true
+  
 }
 </script>
 
@@ -257,5 +314,36 @@ const findSports = () => {
   font-size: 0.875rem;
   margin-top: 0.25rem;
   text-align: left;
+}
+
+.results-section {
+  background-color: #ffffff;
+  padding: 2rem;
+}
+
+.results-title {
+  color: #000000;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.activities-content .activities-found {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.activity-card .card-activities-display {
+  border: 1px solid #e0e5e9;
+}
+
+
+.activity-details p {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.no-results {
+  text-align: center;
+  padding: 2rem;
 }
 </style>
