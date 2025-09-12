@@ -1,10 +1,6 @@
-<script setup>
-import Joinactivities from './components/JoinActivities.vue'
-</script>
-
 <template>
   <div id="app">
-    <Joinactivities />
+    <router-view />
   </div>
 </template>
 

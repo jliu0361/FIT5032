@@ -5,7 +5,9 @@
     <main class="activities-content">
       <div class="content-container">
         <div class="form-section">
-          <h1 class="main-title">Find Your Preferred Sport Activity</h1>
+          <div class="user-info-header">
+            <h1 class="main-title">Find Your Preferred Sport Activity</h1>
+          </div>
           <p class="subtitle">Join activities that match your preferences!</p>
 
           <form class="preference-form" @submit.prevent="findSports">
@@ -173,8 +175,17 @@
 <script setup>
 import Header from './HeaderPage.vue'
 import Footer from './FooterPage.vue'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { activitiesData } from '../data/activities.js'
+import { auth } from '../firebase.js'
+import { onAuthStateChanged } from 'firebase/auth'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '../firebase.js'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const currentUser = ref(null)
+const userRole = ref(null)
 
 const formData = ref({
   gender: '',
@@ -195,6 +206,29 @@ const errors = ref({
 
 const searchResults = ref([])
 const showResults = ref(false)
+
+const getUserRole = async (uid) => {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', uid))
+    return userDoc.exists() ? userDoc.data().role : 'user'
+  } catch (error) {
+    console.error('Error getting user role:', error)
+    return 'user'
+  }
+}
+
+
+onMounted(() => {
+  onAuthStateChanged(auth, async (user) => {
+    currentUser.value = user
+    if (user) {
+      userRole.value = await getUserRole(user.uid)
+    } else {
+      userRole.value = null
+      router.push('/login')
+    }
+  })
+})
 
 const validateAge = (blur) => {
   const age = formData.value.age
@@ -332,8 +366,61 @@ const findSports = () => {
   gap: 1.5rem;
 }
 
-.activity-card .card-activities-display {
-  border: 1px solid #e0e5e9;
+.card-activities-display {
+  border: 2px solid #e0e5e9;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  background-color: #ffffff;
+  overflow: hidden;
+}
+
+.card-activities-display:hover {
+  border-color: #007bff;
+  box-shadow: 0 8px 16px rgba(0, 123, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.card-activities-body {
+  padding: 1.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-activities-title {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+}
+
+.card-activities-text {
+  color: #6c757d;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+.card-activities-display .list-unstyled {
+  margin-bottom: 1.5rem;
+}
+
+.card-activities-display .list-unstyled li {
+  padding: 0.25rem 0;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.card-activities-display .btn-success {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.card-activities-display .btn-success:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
 }
 
 
@@ -345,5 +432,10 @@ const findSports = () => {
 .no-results {
   text-align: center;
   padding: 2rem;
+}
+
+.user-info-header {
+  text-align: center;
+  margin-bottom: 2rem;
 }
 </style>
