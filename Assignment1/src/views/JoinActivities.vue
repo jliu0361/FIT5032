@@ -176,12 +176,13 @@
 import Header from './HeaderPage.vue'
 import Footer from './FooterPage.vue'
 import { ref, onMounted } from 'vue'
-import { activitiesData } from '../data/activities.js'
 import { auth } from '../firebase.js'
 import { onAuthStateChanged } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../firebase.js'
 import { useRouter } from 'vue-router'
+import { validateAge as validateAgeUtil, validatePostcode as validatePostcodeUtil, sanitizeInput } from '../utils/security.js'
+import { activitiesData } from '../data/activities.js'
 
 const router = useRouter()
 const currentUser = ref(null)
@@ -210,9 +211,12 @@ const showResults = ref(false)
 const getUserRole = async (uid) => {
   try {
     const userDoc = await getDoc(doc(db, 'users', uid))
-    return userDoc.exists() ? userDoc.data().role : 'user'
+    if (userDoc.exists()) {
+      return userDoc.data().role
+    } else {
+      return 'user'
+    }
   } catch (error) {
-    console.error('Error getting user role:', error)
     return 'user'
   }
 }
@@ -234,10 +238,8 @@ const validateAge = (blur) => {
   const age = formData.value.age
   if (!age) {
     if (blur) errors.value.age = 'Age is required'
-  } else if (age < 1) {
-    if (blur) errors.value.age = 'Age can not less than 1'
-  } else if (age > 100) {
-    if (blur) errors.value.age = 'Age exceeds the age suitable for sports'
+  } else if (!validateAgeUtil(age)) {
+    if (blur) errors.value.age = 'Age must be between 1 and 100'
   } else {
     errors.value.age = null
   }
@@ -247,7 +249,7 @@ const validatePostcode = (blur) => {
   const postcode = formData.value.postcode
   if (!postcode) {
     if (blur) errors.value.postcode = 'Postcode is required'
-  } else if (!/^3\d{3}$/.test(postcode)) {
+  } else if (!validatePostcodeUtil(postcode)) {
     if (blur)
       errors.value.postcode =
         'Postcode must begin with 3(this web only support sports in Greater Melbourne area) and must be 4 digits'
@@ -284,25 +286,35 @@ const findSports = () => {
     errors.value.sport ||
     errors.value.time
   ) {
-    console.log('Form has validation errors')
     return
   }
 
-  const results = activitiesData.filter(activity => {
-    if (formData.value.sport && activity.sport !== formData.value.sport) {
-      return false
+
+  const cleanSport = sanitizeInput(formData.value.sport)
+  const cleanTime = sanitizeInput(formData.value.time)
+  const cleanPostcode = sanitizeInput(formData.value.postcode)
+
+  const results = []
+  for (let i = 0; i < activitiesData.length; i++) {
+    const activity = activitiesData[i]
+    let match = true
+    
+    if (cleanSport && activity.sport !== cleanSport) {
+      match = false
     }
     
-    if (formData.value.time && activity.time !== formData.value.time) {
-      return false
+    if (cleanTime && activity.time !== cleanTime) {
+      match = false
     }
     
-    if (formData.value.postcode && !activity.postcode.startsWith('3')) {
-      return false
+    if (cleanPostcode && activity.postcode.indexOf('3') !== 0) {
+      match = false
     }
     
-    return true
-  })
+    if (match) {
+      results.push(activity)
+    }
+  }
 
   searchResults.value = results
   showResults.value = true

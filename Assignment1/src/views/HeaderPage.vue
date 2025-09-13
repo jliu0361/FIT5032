@@ -13,7 +13,10 @@
             <router-link to="/" class="nav-link text-white fw-bold px-2">Home</router-link>
             <router-link to="/activities" class="nav-link text-white fw-bold px-2">Join Activities</router-link>
             <router-link to="/wellbeing" class="nav-link text-white fw-bold px-2">Wellbeing & Support</router-link>
-            <router-link to="/contact" class="nav-link text-white fw-bold px-2">Contact</router-link>
+            <router-link to="/review" class="nav-link text-white fw-bold px-2">Rate & Review</router-link>
+            <router-link v-if="isAdmin" to="/admin" class="nav-link text-white fw-bold px-2 admin-link">
+              Manage Activities
+            </router-link>
             <router-link v-if="!isLoggedIn" to="/login" class="nav-link text-white fw-bold px-2">Login</router-link>
             <button v-else @click="logout" class="nav-link text-white fw-bold px-2 btn btn-link p-0">Logout</button>
           </nav>
@@ -26,24 +29,52 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { auth } from '../firebase.js'
+import { auth, db } from '../firebase.js'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
+import { doc, getDoc } from 'firebase/firestore'
 
 const router = useRouter()
 const isLoggedIn = ref(false)
+const userRole = ref('')
+const isAdmin = ref(false)
+
+const getUserRole = async (uid) => {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', uid))
+    if (userDoc.exists()) {
+      return userDoc.data().role
+    } else {
+      return 'user'
+    }
+  } catch (error) {
+    return 'user'
+  }
+}
 
 const logout = async () => {
   try {
     await signOut(auth)
     router.push('/login')
   } catch (error) {
-    console.error('Error logging out:', error)
+    console.error('Error signing out:', error)
   }
 }
 
 onMounted(() => {
-  onAuthStateChanged(auth, (user) => {
-    isLoggedIn.value = !!user
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      isLoggedIn.value = true
+      userRole.value = await getUserRole(user.uid)
+      if (userRole.value === 'admin') {
+        isAdmin.value = true
+      } else {
+        isAdmin.value = false
+      }
+    } else {
+      isLoggedIn.value = false
+      userRole.value = ''
+      isAdmin.value = false
+    }
   })
 })
 </script>
@@ -70,6 +101,7 @@ onMounted(() => {
 
 .nav-link.router-link-active {
   background-color: rgba(255, 255, 255, 0.2);
-  color: #ffffff !important;
+  color: #2158cd !important;
 }
+
 </style>

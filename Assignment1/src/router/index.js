@@ -5,7 +5,7 @@ import AllActivities from '../views/AllActivities.vue'
 import FirebaseLoginPage from '../views/FirebaseLoginPage.vue'
 import AdminPanel from '../views/AdminPanel.vue'
 import WellbeingPage from '../views/WellbeingPage.vue'
-import ContactPage from '../views/ContactPage.vue'
+import ReviewPage from '../views/ReviewPage.vue'
 import { auth } from '../firebase.js'
 import { onAuthStateChanged } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
@@ -48,9 +48,9 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/contact',
-    name: 'Contact',
-    component: ContactPage,
+    path: '/review',
+    name: 'Review',
+    component: ReviewPage,
     meta: { requiresAuth: true }
   }
 ]
@@ -65,7 +65,6 @@ const getUserRole = async (uid) => {
     const userDoc = await getDoc(doc(db, 'users', uid))
     return userDoc.exists() ? userDoc.data().role : 'user'
   } catch (error) {
-    console.error('Error getting user role:', error)
     return 'user'
   }
 }
