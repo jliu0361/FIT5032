@@ -38,7 +38,7 @@
         </div>
 
         <div class="card">
-          <h3>Overall Rating</h3>
+          <h3>Overall Average Rating</h3>
           <div class="rating-display">
             <span class="number">{{ averageRating.toFixed(1) }}</span>
             <span class="count">({{ totalRatings }} ratings)</span>
@@ -65,12 +65,18 @@ const ratings = ref([])
 const rating = ref(0)
 
 const averageRating = computed(() => {
-  if (ratings.value.length === 0) return 0
+  if (ratings.value.length === 0) {
+    console.log('No ratings found, returning 0')
+    return 0
+  }
   let sum = 0
   for (let i = 0; i < ratings.value.length; i++) {
     sum += ratings.value[i].rating
+    console.log(`Adding rating ${i+1}: ${ratings.value[i].rating}, running sum: ${sum}`)
   }
-  return sum / ratings.value.length
+  const average = sum / ratings.value.length
+  console.log(`Final calculation: ${sum} / ${ratings.value.length} = ${average}`)
+  return average
 })
 
 const totalRatings = computed(() => ratings.value.length)
@@ -88,15 +94,21 @@ const loadRatings = async () => {
   try {
     const snapshot = await getDocs(collection(db, 'users'))
     ratings.value = []
+    console.log('Total documents found:', snapshot.size)
     snapshot.forEach((doc) => {
       const data = doc.data()
+      console.log('Document data:', doc.id, data)
       if (data.rating) {
+        const ratingValue = Number(data.rating)
         ratings.value.push({
           id: doc.id,
-          rating: data.rating
+          rating: ratingValue
         })
+        console.log('Added rating:', ratingValue, 'for user:', doc.id)
       }
     })
+    console.log('All ratings array:', ratings.value)
+    console.log('Calculated average:', averageRating.value)
   } catch (error) {
     console.log('Error loading ratings:', error)
   }
