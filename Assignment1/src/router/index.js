@@ -4,7 +4,7 @@ import JoinActivities from '../views/JoinActivities.vue'
 import AllActivities from '../views/AllActivities.vue'
 import FirebaseLoginPage from '../views/FirebaseLoginPage.vue'
 import AdminPanel from '../views/AdminPanel.vue'
-import WellbeingPage from '../views/WellbeingPage.vue'
+import CurrentAppointment from '../views/CurrentAppointment.vue'
 import ReviewPage from '../views/ReviewPage.vue'
 import { auth } from '../firebase.js'
 import { onAuthStateChanged } from 'firebase/auth'
@@ -42,9 +42,9 @@ const routes = [
     meta: { requiresAuth: true, requiresRole: 'admin' }
   },
   {
-    path: '/wellbeing',
-    name: 'Wellbeing',
-    component: WellbeingPage,
+    path: '/current-appointment',
+    name: 'CurrentAppointment',
+    component: CurrentAppointment,
     meta: { requiresAuth: true }
   },
   {

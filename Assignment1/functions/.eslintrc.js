@@ -1,0 +1,43 @@
+module.exports = {
+  root: true,
+  env: { node: true, es2022: true },
+  parserOptions: { sourceType: 'script' },
+  globals: {
+    require: 'readonly',
+    process: 'readonly',
+    exports: 'readonly',
+    Buffer: 'readonly',
+  },
+};
+/* eslint-env node */
+module.exports = {
+  env: {
+    es6: true,
+    node: true,
+  },
+  ignorePatterns: [
+    ".eslintrc.js"
+  ],
+  parserOptions: {
+    "ecmaVersion": 2018,
+  },
+  extends: [
+    "eslint:recommended",
+    "google",
+  ],
+  rules: {
+    "no-restricted-globals": ["error", "name", "length"],
+    "prefer-arrow-callback": "error",
+    "quotes": ["error", "double", {"allowTemplateLiterals": true}],
+  },
+  overrides: [
+    {
+      files: ["**/*.spec.*"],
+      env: {
+        mocha: true,
+      },
+      rules: {},
+    },
+  ],
+  globals: {},
+};

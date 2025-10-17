@@ -12,7 +12,8 @@
           <nav class="nav justify-content-md-end justify-content-center">
             <router-link to="/" class="nav-link text-white fw-bold px-2">Home</router-link>
             <router-link to="/activities" class="nav-link text-white fw-bold px-2">Join Activities</router-link>
-            <router-link to="/wellbeing" class="nav-link text-white fw-bold px-2">Wellbeing & Support</router-link>
+            <router-link to="/all-activities" class="nav-link text-white fw-bold px-2">Browse All Activities</router-link>
+            <router-link to="/current-appointment" class="nav-link text-white fw-bold px-2">Current Appointments</router-link>
             <router-link to="/review" class="nav-link text-white fw-bold px-2">Rate & Review</router-link>
             <router-link v-if="isAdmin" to="/admin" class="nav-link text-white fw-bold px-2 admin-link">
               Manage Activities

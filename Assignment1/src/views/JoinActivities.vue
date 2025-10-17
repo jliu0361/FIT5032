@@ -158,7 +158,7 @@
                       <li>Contact: {{ activity.contact }}</li>
                     </ul>
 
-                    <button class="btn btn-success btn-lg w-50 mt-auto">Join Activity</button>
+                    <button class="btn btn-success btn-lg w-50 mt-auto" @click="joinActivity(activity)">Join Activity</button>
                   </div>
                 </div>
               </div>
@@ -178,7 +178,7 @@ import Footer from './FooterPage.vue'
 import { ref, onMounted } from 'vue'
 import { auth } from '../firebase.js'
 import { onAuthStateChanged } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase.js'
 import { useRouter } from 'vue-router'
 import { validateAge as validateAgeUtil, validatePostcode as validatePostcodeUtil, sanitizeInput } from '../utils/security.js'
@@ -319,6 +319,38 @@ const findSports = () => {
   searchResults.value = results
   showResults.value = true
   
+}
+
+const joinActivity = async (activity) => {
+  try {
+    const user = auth.currentUser
+    if (!user) {
+      router.push('/login')
+      return
+    }
+
+    const appointmentRef = doc(db, 'users', user.uid, 'appointments', String(activity.sportid))
+    await setDoc(
+      appointmentRef,
+      {
+        sportid: activity.sportid,
+        name: activity.name,
+        sport: activity.sport,
+        location: activity.location,
+        postcode: activity.postcode,
+        time: activity.time,
+        contact: activity.contact,
+        ageRange: activity.ageRange,
+        currentParticipants: activity.currentParticipants,
+        joinedAt: serverTimestamp(),
+      },
+      { merge: true }
+    )
+
+    alert('Joined successfully! You can view it under Wellbeing & Support -> Current Appointments.')
+  } catch (error) {
+    alert('Failed to join activity. Please try again later.')
+  }
 }
 </script>
 

@@ -15,6 +15,8 @@
               <button class="browse-btn" @click="goToActivities">
                 Browse Activities
               </button>
+              
+              
             </div>
             <div class="col-12 col-lg-6">
               <div class="row g-3">
@@ -101,6 +103,7 @@ import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../firebase.js'
 import Header from './HeaderPage.vue'
 import Footer from './FooterPage.vue'
+ 
 
 const router = useRouter()
 const currentUser = ref(null)
@@ -122,6 +125,7 @@ const getUserRole = async (uid) => {
 const goToActivities = () => {
   router.push('/all-activities')
 }
+
 
 onMounted(() => {
   onAuthStateChanged(auth, async (user) => {
