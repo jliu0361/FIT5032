@@ -98,11 +98,23 @@ const toggleSort = (key) => {
 
 const sortedAppointments = computed(() => {
   const q = search.value.trim().toLowerCase()
-  if (!q) return appointments.value
-  return appointments.value.filter(a => {
+  const filtered = appointments.value.filter(a => {
+    if (!q) return true
     const values = [a.name, a.sport, a.location, a.postcode, a.time]
     return values.some(v => (v ?? '').toString().toLowerCase().includes(q))
   })
+  const arr = [...filtered]
+  const { key, direction } = sort.value
+  arr.sort((a, b) => {
+    const va = a[key]
+    const vb = b[key]
+    const aVal = va && va.toDate ? va.toDate().getTime() : (va ?? '').toString().toLowerCase()
+    const bVal = vb && vb.toDate ? vb.toDate().getTime() : (vb ?? '').toString().toLowerCase()
+    if (aVal < bVal) return direction === 'asc' ? -1 : 1
+    if (aVal > bVal) return direction === 'asc' ? 1 : -1
+    return 0
+  })
+  return arr
 })
 
 const totalPages = computed(() => Math.max(1, Math.ceil(sortedAppointments.value.length / pageSize.value)))

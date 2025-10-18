@@ -101,7 +101,16 @@ const filtered = computed(() => {
 })
 
 const sorted = computed(() => {
-  return filtered.value
+  const arr = [...filtered.value]
+  const { key, direction } = sort.value
+  arr.sort((a, b) => {
+    const va = (a[key] ?? '').toString().toLowerCase()
+    const vb = (b[key] ?? '').toString().toLowerCase()
+    if (va < vb) return direction === 'asc' ? -1 : 1
+    if (va > vb) return direction === 'asc' ? 1 : -1
+    return 0
+  })
+  return arr
 })
 
 const totalPages = computed(() => Math.max(1, Math.ceil(sorted.value.length / pageSize.value)))
