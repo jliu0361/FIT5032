@@ -64,3 +64,63 @@ exports.getMelbourneWeather = onRequest(async (req, res) => {
     return res.status(500).json({ error: "Internal error fetching weather" });
   }
 });
+
+
+const RESEND_API_KEY = "re_a8WQSUrF_73spnykbfoxAPH5Dg1bWmcEE";
+
+exports.sendEmailWithAttachment = onRequest(async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") return res.status(204).send("");
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    if (!RESEND_API_KEY) {
+      logger.error("Missing RESEND_API_KEY env");
+      return res.status(500).json({ error: "Email service not configured" });
+    }
+
+    const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
+    const to = body?.to;
+    if (!to || typeof to !== "string") {
+      return res.status(400).json({ error: "Missing 'to' email" });
+    }
+    const subject = "Hello from SportMate";
+    const html = "<p>Hello! Please find your attachment.</p>";
+    const attachment = {
+      filename: "hello.txt",
+      content: Buffer.from("hello\n").toString("base64"),
+    };
+
+    const resp = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "SportMate <onboarding@resend.dev>",
+        to: [to],
+        subject,
+        html,
+        attachments: [attachment],
+      }),
+    });
+
+    if (!resp.ok) {
+      const text = await resp.text();
+      logger.error("Resend send failed", { status: resp.status, body: text });
+      return res.status(502).json({ error: "Email provider error", status: resp.status });
+    }
+
+    const json = await resp.json();
+    return res.status(200).json({ ok: true, provider: json });
+  } catch (err) {
+    logger.error("sendEmailWithAttachment failed", err);
+    return res.status(500).json({ error: "Internal error sending email" });
+  }
+});

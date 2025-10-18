@@ -15,6 +15,9 @@
               <button class="browse-btn" @click="goToActivities">
                 Browse Activities
               </button>
+              <button class="browse-btn" style="margin-left: 0.5rem" @click="sendAttachmentEmail">
+                Follow Us
+              </button>
               
               <div class="weather-card" v-if="weather">
                 <div class="weather-header">Melbourne Now</div>
@@ -131,10 +134,30 @@ const goToActivities = () => {
   router.push('/all-activities')
 }
 
+const sendAttachmentEmail = async () => {
+  try {
+    const to = prompt('Enter your email address')
+    if (!to) return
+    const base = getFunctionsBaseUrl()
+    const endpoint = base ? `${base}/sendEmailWithAttachment` : '/sendEmailWithAttachment'
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to })
+    })
+    if (!res.ok) {
+      alert('Failed to send email')
+      return
+    }
+    alert('Email sent!')
+  } catch (e) {
+    alert('Failed to send email')
+  }
+}
+
 
 const weather = ref(null)
 const weatherLoading = ref(false)
-// show card when weather is available; no separate "loaded" flag needed
 const weatherError = ref(false)
 
 const displayTemp = computed(() => {
