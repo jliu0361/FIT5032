@@ -1,40 +1,29 @@
 <template>
   <div class="movemate-app">
     <Header />
-    <main class="wellbeing-content">
-      <div class="content-container">
+    <main class="wellbeing-content minimal">
+      <div class="content-container print-section">
         <h1 class="main-title">Current Appointments</h1>
-
+        <div class="d-flex justify-content-end mb-3 no-print">
+          <button class="btn btn-primary" @click="printAppointments">Print to PDF</button>
+        </div>
         
 
         <div class="table-responsive">
-          <table class="table table-striped align-middle">
+          <table class="table table-sm align-middle">
             <thead>
               <tr>
                 <th v-for="col in columns" :key="col.key" @click="toggleSort(col.key)" class="sortable">
                   <div class="d-flex align-items-center gap-2">
                     <span>{{ col.label }}</span>
-                    <span v-if="sort.key === col.key">{{ sort.direction === 'asc' ? '▲' : '▼' }}</span>
+                    <span v-if="sort.key === col.key">{{ sort.direction === 'asc' ? '↑' : '↓' }}</span>
                   </div>
                 </th>
               </tr>
               <tr class="filter-row">
-                <th>
-                  <input type="text" v-model="filters.name" @click.stop class="form-control form-control-sm w-100" placeholder="Search" />
+                <th :colspan="columns.length">
+                  <input type="text" v-model="search" @click.stop class="form-control form-control-sm w-100" placeholder="Search all columns" />
                 </th>
-                <th>
-                  <input type="text" v-model="filters.sport" @click.stop class="form-control form-control-sm w-100" placeholder="Search" />
-                </th>
-                <th>
-                  <input type="text" v-model="filters.location" @click.stop class="form-control form-control-sm w-100" placeholder="Search" />
-                </th>
-                <th>
-                  <input type="text" v-model="filters.postcode" @click.stop class="form-control form-control-sm w-100" placeholder="Search" />
-                </th>
-                <th>
-                  <input type="text" v-model="filters.time" @click.stop class="form-control form-control-sm w-100" placeholder="Search" />
-                </th>
-                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -57,8 +46,6 @@
           <div>
             <label class="me-2">Rows per page</label>
             <select v-model.number="pageSize" class="form-select d-inline-block w-auto">
-              <option :value="2">2</option>
-              <option :value="5">5</option>
               <option :value="10">10</option>
             </select>
           </div>
@@ -77,7 +64,7 @@
 <script setup>
 import Header from './HeaderPage.vue'
 import Footer from './FooterPage.vue'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { auth, db } from '../firebase.js'
 import { onAuthStateChanged } from 'firebase/auth'
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore'
@@ -89,8 +76,7 @@ const appointments = ref([])
 const page = ref(1)
 const pageSize = ref(10)
 const sort = ref({ key: 'joinedAt', direction: 'desc' })
-const nameQuery = ref('')
-const filters = ref({ name: '', sport: '', location: '', postcode: '', time: '' })
+const search = ref('')
 
 const columns = [
   { key: 'name', label: 'Name' },
@@ -111,29 +97,12 @@ const toggleSort = (key) => {
 }
 
 const sortedAppointments = computed(() => {
-  const q = nameQuery.value.trim().toLowerCase()
-  const f = filters.value
-  const filtered = appointments.value.filter(a => {
-    const matchName = q ? (a.name || '').toString().toLowerCase().includes(q) : true
-    const matchSport = f.sport ? (a.sport || '').toString().toLowerCase().includes(f.sport.toLowerCase()) : true
-    const matchLocation = f.location ? (a.location || '').toString().toLowerCase().includes(f.location.toLowerCase()) : true
-    const matchPostcode = f.postcode ? (a.postcode || '').toString().toLowerCase().includes(f.postcode.toLowerCase()) : true
-    const matchTime = f.time ? (a.time || '').toString().toLowerCase().includes(f.time.toLowerCase()) : true
-    return matchName && matchSport && matchLocation && matchPostcode && matchTime
+  const q = search.value.trim().toLowerCase()
+  if (!q) return appointments.value
+  return appointments.value.filter(a => {
+    const values = [a.name, a.sport, a.location, a.postcode, a.time]
+    return values.some(v => (v ?? '').toString().toLowerCase().includes(q))
   })
-  const arr = [...filtered]
-  const { key, direction } = sort.value
-  arr.sort((a, b) => {
-    const va = a[key]
-    const vb = b[key]
-    // handle timestamp objects
-    const aVal = va && va.toDate ? va.toDate().getTime() : (va ?? '').toString().toLowerCase()
-    const bVal = vb && vb.toDate ? vb.toDate().getTime() : (vb ?? '').toString().toLowerCase()
-    if (aVal < bVal) return direction === 'asc' ? -1 : 1
-    if (aVal > bVal) return direction === 'asc' ? 1 : -1
-    return 0
-  })
-  return arr
 })
 
 const totalPages = computed(() => Math.max(1, Math.ceil(sortedAppointments.value.length / pageSize.value)))
@@ -148,6 +117,14 @@ const formatDate = (ts) => {
   if (!ts) return ''
   const d = ts.toDate ? ts.toDate() : new Date(ts)
   return d.toLocaleString()
+}
+
+const printAppointments = async () => {
+  const prevSize = pageSize.value
+  pageSize.value = sortedAppointments.value.length || prevSize
+  await nextTick()
+  window.print()
+  setTimeout(() => { pageSize.value = prevSize }, 0)
 }
 
 let unsubscribe = null
@@ -173,28 +150,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.wellbeing-content {
-  flex: 1;
-  padding: 2rem 0;
-  background: linear-gradient(to bottom, #fff4e6, #f8f9fa);
-}
+.wellbeing-content { flex: 1; padding: 1.25rem 0; }
+.wellbeing-content.minimal { background: #fafafa; }
 
-.content-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-  background-color: white;
-  border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-}
+.content-container { max-width: 1000px; margin: 0 auto; padding: 1rem; background: white; border-radius: 8px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08); }
 
-.main-title {
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-  color: #000000;
-  text-align: center;
-}
+.main-title { font-size: 1.5rem; font-weight: 700; margin: 0 0 1rem; color: #2c3e50; text-align: center; }
 
 .subtitle {
   font-size: 1.1rem;
@@ -210,5 +171,11 @@ onMounted(() => {
 
 .pagination {
   margin-top: 1rem;
+}
+
+@media print {
+  .no-print, .pagination { display: none !important; }
+  .wellbeing-content { background: white !important; padding: 0 !important; }
+  .content-container.print-section { box-shadow: none; border-radius: 0; max-width: 100%; margin: 0; padding: 0; }
 }
 </style>

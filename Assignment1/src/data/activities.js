@@ -8,8 +8,7 @@ export const activitiesData = [
     time: "morning",
     gender: "all",
     ageRange: "18-65",
-    contact: "running@sportmate.com",
-    currentParticipants: 12
+    contact: "running@sportmate.com"
   },
   {
     sportid: 2,
@@ -20,8 +19,7 @@ export const activitiesData = [
     time: "evening",
     gender: "all",
     ageRange: "16-45",
-    contact: "basketball@sportmate.com",
-    currentParticipants: 35
+    contact: "basketball@sportmate.com"
   },
   {
     sportid: 3,
@@ -32,8 +30,7 @@ export const activitiesData = [
     time: "afternoon",
     gender: "all",
     ageRange: "18-60",
-    contact: "yoga@sportmate.com",
-    currentParticipants: 18
+    contact: "yoga@sportmate.com"
   },
   {
     sportid: 4,
@@ -44,8 +41,7 @@ export const activitiesData = [
     time: "evening",
     gender: "all",
     ageRange: "16-50",
-    contact: "football@sportmate.com",
-    currentParticipants: 22
+    contact: "football@sportmate.com"
   },
   {
     sportid: 5,
@@ -56,8 +52,7 @@ export const activitiesData = [
     time: "morning",
     gender: "all",
     ageRange: "12-70",
-    contact: "swimming@sportmate.com",
-    currentParticipants: 10
+    contact: "swimming@sportmate.com"
   },
   {
     sportid: 6,
@@ -68,8 +63,7 @@ export const activitiesData = [
     time: "evening",
     gender: "all",
     ageRange: "18-55",
-    contact: "tennis@sportmate.com",
-    currentParticipants: 8
+    contact: "tennis@sportmate.com"
   },
   {
     sportid: 7,
@@ -80,8 +74,7 @@ export const activitiesData = [
     time: "morning",
     gender: "all",
     ageRange: "12-70",
-    contact: "parkrun@sportmate.com",
-    currentParticipants: 90
+    contact: "parkrun@sportmate.com"
   },
   {
     sportid: 8,
@@ -92,8 +85,7 @@ export const activitiesData = [
     time: "evening",
     gender: "all",
     ageRange: "16-60",
-    contact: "badminton@sportmate.com",
-    currentParticipants: 28
+    contact: "badminton@sportmate.com"
   },
   {
     sportid: 9,
@@ -104,8 +96,7 @@ export const activitiesData = [
     time: "morning",
     gender: "all",
     ageRange: "18-65",
-    contact: "cycling@sportmate.com",
-    currentParticipants: 25
+    contact: "cycling@sportmate.com"
   },
   {
     sportid: 10,
@@ -116,8 +107,7 @@ export const activitiesData = [
     time: "evening",
     gender: "all",
     ageRange: "18-60",
-    contact: "pilates@sportmate.com",
-    currentParticipants: 14
+    contact: "pilates@sportmate.com"
   },
   {
     sportid: 11,
@@ -128,8 +118,7 @@ export const activitiesData = [
     time: "afternoon",
     gender: "all",
     ageRange: "18-65",
-    contact: "gym@sportmate.com",
-    currentParticipants: 16
+    contact: "gym@sportmate.com"
   },
   {
     sportid: 12,
@@ -140,7 +129,6 @@ export const activitiesData = [
     time: "morning",
     gender: "all",
     ageRange: "18-80",
-    contact: "walking@sportmate.com",
-    currentParticipants: 30
+    contact: "walking@sportmate.com"
   }
 ]

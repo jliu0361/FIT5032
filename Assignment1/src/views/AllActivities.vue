@@ -13,22 +13,17 @@
           <table class="table table-striped align-middle">
             <thead>
               <tr>
-                <th @click="toggleSort('name')" class="sortable">Name <span v-if="sort.key==='name'">{{ sort.direction==='asc' ? '▲' : '▼' }}</span></th>
-                <th @click="toggleSort('sport')" class="sortable">Sport <span v-if="sort.key==='sport'">{{ sort.direction==='asc' ? '▲' : '▼' }}</span></th>
-                <th @click="toggleSort('location')" class="sortable">Location <span v-if="sort.key==='location'">{{ sort.direction==='asc' ? '▲' : '▼' }}</span></th>
-                <th @click="toggleSort('postcode')" class="sortable">Postcode <span v-if="sort.key==='postcode'">{{ sort.direction==='asc' ? '▲' : '▼' }}</span></th>
-                <th @click="toggleSort('time')" class="sortable">Time <span v-if="sort.key==='time'">{{ sort.direction==='asc' ? '▲' : '▼' }}</span></th>
-                <th @click="toggleSort('currentParticipants')" class="sortable">Participants <span v-if="sort.key==='currentParticipants'">{{ sort.direction==='asc' ? '▲' : '▼' }}</span></th>
+                <th @click="toggleSort('name')" class="sortable">Name <span v-if="sort.key==='name'">{{ sort.direction==='asc' ? '↑' : '↓' }}</span></th>
+                <th @click="toggleSort('sport')" class="sortable">Sport <span v-if="sort.key==='sport'">{{ sort.direction==='asc' ? '↑' : '↓' }}</span></th>
+                <th @click="toggleSort('location')" class="sortable">Location <span v-if="sort.key==='location'">{{ sort.direction==='asc' ? '↑' : '↓' }}</span></th>
+                <th @click="toggleSort('postcode')" class="sortable">Postcode <span v-if="sort.key==='postcode'">{{ sort.direction==='asc' ? '↑' : '↓' }}</span></th>
+                <th @click="toggleSort('time')" class="sortable">Time <span v-if="sort.key==='time'">{{ sort.direction==='asc' ? '↑' : '▼' }}</span></th>
                 <th>Action</th>
               </tr>
               <tr class="filter-row">
-                <th><input v-model="filters.name" @click.stop type="text" class="form-control form-control-sm" placeholder="Search" /></th>
-                <th><input v-model="filters.sport" @click.stop type="text" class="form-control form-control-sm" placeholder="Search" /></th>
-                <th><input v-model="filters.location" @click.stop type="text" class="form-control form-control-sm" placeholder="Search" /></th>
-                <th><input v-model="filters.postcode" @click.stop type="text" class="form-control form-control-sm" placeholder="Search" /></th>
-                <th><input v-model="filters.time" @click.stop type="text" class="form-control form-control-sm" placeholder="Search" /></th>
-                <th></th>
-                <th></th>
+                <th :colspan="6">
+                  <input v-model="query" @click.stop type="text" class="form-control form-control-sm" placeholder="Search for all the column" />
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -38,13 +33,12 @@
                 <td>{{ activity.location }}</td>
                 <td>{{ activity.postcode }}</td>
                 <td>{{ activity.time }}</td>
-                <td>{{ activity.currentParticipants }}</td>
                 <td>
                   <button class="btn btn-success btn-sm" @click="joinActivity(activity)">Join</button>
                 </td>
               </tr>
               <tr v-if="pagedActivities.length === 0">
-                <td colspan="7" class="text-center text-muted py-4">No activities found</td>
+                <td colspan="6" class="text-center text-muted py-4">No activities found, please adjust ur input</td>
               </tr>
             </tbody>
           </table>
@@ -52,10 +46,8 @@
 
         <div class="pagination d-flex justify-content-between align-items-center">
           <div>
-            <label class="me-2">Rows per page</label>
+            <label class="me-2">Rows in this page</label>
             <select v-model.number="pageSize" class="form-select d-inline-block w-auto">
-              <option :value="2">2</option>
-              <option :value="5">5</option>
               <option :value="10">10</option>
             </select>
           </div>
@@ -88,7 +80,7 @@ const router = useRouter()
 const page = ref(1)
 const pageSize = ref(10)
 const sort = ref({ key: 'name', direction: 'asc' })
-const filters = ref({ name: '', sport: '', location: '', postcode: '', time: '' })
+const query = ref('')
 
 const toggleSort = (key) => {
   if (sort.value.key === key) {
@@ -100,27 +92,16 @@ const toggleSort = (key) => {
 }
 
 const filtered = computed(() => {
-  const f = filters.value
-  return activitiesData.filter((a) =>
-    (!f.name || (a.name || '').toLowerCase().includes(f.name.toLowerCase())) &&
-    (!f.sport || (a.sport || '').toLowerCase().includes(f.sport.toLowerCase())) &&
-    (!f.location || (a.location || '').toLowerCase().includes(f.location.toLowerCase())) &&
-    (!f.postcode || (a.postcode || '').toLowerCase().includes(f.postcode.toLowerCase())) &&
-    (!f.time || (a.time || '').toLowerCase().includes(f.time.toLowerCase()))
-  )
+  const q = query.value.trim().toLowerCase()
+  if (!q) return activitiesData
+  return activitiesData.filter(a => {
+    const values = [a.name, a.sport, a.location, a.postcode, a.time]
+    return values.some(v => (v ?? '').toString().toLowerCase().includes(q))
+  })
 })
 
 const sorted = computed(() => {
-  const arr = [...filtered.value]
-  const { key, direction } = sort.value
-  arr.sort((a, b) => {
-    const va = (a[key] ?? '').toString().toLowerCase()
-    const vb = (b[key] ?? '').toString().toLowerCase()
-    if (va < vb) return direction === 'asc' ? -1 : 1
-    if (va > vb) return direction === 'asc' ? 1 : -1
-    return 0
-  })
-  return arr
+  return filtered.value
 })
 
 const totalPages = computed(() => Math.max(1, Math.ceil(sorted.value.length / pageSize.value)))
@@ -150,7 +131,6 @@ const joinActivity = async (activity) => {
         time: activity.time,
         contact: activity.contact,
         ageRange: activity.ageRange,
-        currentParticipants: activity.currentParticipants,
         joinedAt: serverTimestamp(),
       },
       { merge: true }
@@ -199,66 +179,7 @@ const joinActivity = async (activity) => {
   color: #6c757d;
   margin: 0;
 }
-
-
-.activity-card {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  border: 2px solid transparent;
-}
-
-
-.activity-content {
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.activity-name {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 1rem;
-}
-
-.activity-description {
-  color: #6c757d;
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
-}
-
-.activity-details {
+.table-responsive {
   margin-bottom: 2rem;
-  flex-grow: 1;
 }
-
-.detail-item {
-  margin-bottom: 0.75rem;
-  color: #495057;
-}
-
-.activity-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: auto;
-}
-
-.join-btn {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  color: white;
-}
-
-
 </style>

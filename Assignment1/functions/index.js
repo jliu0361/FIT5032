@@ -22,7 +22,7 @@ const logger = require("firebase-functions/logger");
 // functions should each use functions.runWith({ maxInstances: 10 }) instead.
 // In the v1 API, each function can only serve one request per container, so
 // this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+setGlobalOptions({ maxInstances: 10, region: "australia-southeast2" });
 
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
@@ -32,4 +32,35 @@ setGlobalOptions({ maxInstances: 10 });
 //   response.send("Hello from Firebase!");
 // });
 
-// Email feature removed per request – leaving only default exports scaffold
+const API_KEY = "9bfe649dc3524c9aa0c55559251710";
+const BASE_URL = "https://api.weatherapi.com/v1/current.json";
+
+function normalizeWeatherApi(data) {
+  return {
+    lastUpdatedEpoch: data?.current?.last_updated_epoch,
+    tempC: data?.current?.temp_c,
+    isDay: data?.current?.is_day === 1,
+  };
+}
+
+exports.getMelbourneWeather = onRequest(async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") return res.status(204).send("");
+
+  try {
+    const params = new URLSearchParams({ key: API_KEY, q: "Melbourne,AU", aqi: "no" });
+    const response = await fetch(`${BASE_URL}?${params.toString()}`);
+    if (!response.ok) {
+      const text = await response.text();
+      logger.error("WeatherAPI error", { status: response.status, body: text });
+      return res.status(502).json({ error: "Upstream weather API error", status: response.status });
+    }
+    const json = await response.json();
+    return res.status(200).json(normalizeWeatherApi(json));
+  } catch (err) {
+    logger.error("getMelbourneWeather failed", err);
+    return res.status(500).json({ error: "Internal error fetching weather" });
+  }
+});

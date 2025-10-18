@@ -16,6 +16,19 @@
                 Browse Activities
               </button>
               
+              <div class="weather-card" v-if="weather">
+                <div class="weather-header">Melbourne Now</div>
+                <div class="weather-body">
+                  <div class="weather-main">
+                    <div class="weather-temp">{{ displayTemp }}°C</div>
+                  </div>
+                </div>
+                <div class="weather-updated" v-if="weather.lastUpdatedEpoch">
+                  Updated: {{ new Date(weather.lastUpdatedEpoch * 1000).toLocaleString() }}
+                </div>
+              </div>
+              <div v-else-if="weatherLoading" class="weather-loading">Loading weather…</div>
+              <div v-else-if="weatherError" class="weather-error">Failed to load weather.</div>
               
             </div>
             <div class="col-12 col-lg-6">
@@ -95,48 +108,62 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { auth } from '../firebase.js'
 import { onAuthStateChanged } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
-import { db } from '../firebase.js'
 import Header from './HeaderPage.vue'
 import Footer from './FooterPage.vue'
- 
+const getFunctionsBaseUrl = () => {
+  const override = import.meta?.env?.VITE_FUNCTIONS_BASE_URL
+  if (override) return override.replace(/\/$/, '')
+  const host = window.location?.hostname
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return 'http://127.0.0.1:5001/sportmate-4272f/australia-southeast2'
+  }
+  return ''
+}
 
 const router = useRouter()
 const currentUser = ref(null)
-const userRole = ref(null)
-
-const getUserRole = async (uid) => {
-  try {
-    const userDoc = await getDoc(doc(db, 'users', uid))
-    if (userDoc.exists()) {
-      return userDoc.data().role
-    } else {
-      return 'user'
-    }
-  } catch (error) {
-    return 'user'
-  }
-}
 
 const goToActivities = () => {
   router.push('/all-activities')
 }
 
 
+const weather = ref(null)
+const weatherLoading = ref(false)
+// show card when weather is available; no separate "loaded" flag needed
+const weatherError = ref(false)
+
+const displayTemp = computed(() => {
+  if (!weather.value || typeof weather.value.tempC !== 'number') return '—'
+  return Math.round(weather.value.tempC)
+})
+
 onMounted(() => {
   onAuthStateChanged(auth, async (user) => {
     currentUser.value = user
-    if (user) {
-      userRole.value = await getUserRole(user.uid)
-    } else {
-      userRole.value = null
+    if (!user) {
       router.push('/login')
     }
   })
+  ;(async () => {
+    try {
+      weatherLoading.value = true
+      const base = getFunctionsBaseUrl()
+      const endpoint = base ? `${base}/getMelbourneWeather` : '/getMelbourneWeather'
+      const res = await fetch(endpoint)
+      if (!res.ok) throw new Error('weather failed')
+      const data = await res.json()
+      weather.value = data
+    } catch (e) {
+      weatherError.value = true
+    } finally {
+      weatherLoading.value = false
+    }
+  })()
 })
 </script>
 
@@ -175,6 +202,43 @@ onMounted(() => {
 
 .browse-btn:hover {
   background: #0056b3;
+}
+
+.weather-card {
+  margin-top: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #f7fbff;
+  padding: 1rem;
+}
+
+.weather-header {
+  font-weight: 600;
+  color: #0b5ed7;
+  margin-bottom: 0.5rem;
+}
+
+.weather-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.weather-main {
+  display: flex;
+  flex-direction: column;
+}
+
+.weather-temp {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0b5ed7;
+}
+
+.weather-loading, .weather-error {
+  margin-top: 0.75rem;
+  color: #666;
 }
 
 .sport-card {
